@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-  string word = "Jumping";
+  string word = "Underrated";
   stemming::stem_word(&word, &word);
   cout << word;
   return 0;
