@@ -11,11 +11,15 @@ using namespace std;
 
 //This function takes a string, a separator and a vector. It stores words in vector seperated by the seperator 
 void split(const string &s, char seperator, unordered_map<string,int> &words) {
-    stringstream main_string(s);
     string word;
-    while (getline(main_string, word, seperator)) {
-         words[word]=words[word]+1;
-    }
+        for(int i=0;i<s.size();i++){
+            if(isalpha(s[i])){
+            word.push_back(s[i]);
+            }
+            if(isspace(s[i])&&word.length()){
+            words[word]=words[word]+1;word.clear();
+            }
+        }
 }
 
 
