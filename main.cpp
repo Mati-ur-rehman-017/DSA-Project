@@ -6,6 +6,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <map>
+#include<chrono>
 
 using namespace std;
 
@@ -17,6 +18,7 @@ void split(const string &s, char seperator, unordered_map<string,int> &words) {
             word.push_back(s[i]);
             }
             if(isspace(s[i])&&word.length()){
+            stemming::stem_word(&word, &word);
             words[word]=words[word]+1;word.clear();
             }
         }
@@ -29,20 +31,19 @@ void forward_index(string a){
         std::cerr << "Failed to open the file." << endl;
         return;
     }
-    //Parsing json file
-    nlohmann::json jsonData;
-    file >> jsonData;
-
     ofstream file_output("index.json");
     if (!file_output.is_open()) {
         std::cerr << "Failed to open the file for writing." << std::endl;
         return;
     }
+    //Parsing json file
+    nlohmann::json jsonData;
+    file >> jsonData;
+
     unordered_map<string,int> mp;
     unordered_map<string, int>::iterator it;
-    
-    nlohmann::json jsonArray = nlohmann::json::array();
     //Accessing each article in json file
+    int i=0;file_output<<"[";
     for (const auto& entry : jsonData) {
         string t = entry["title"];
         string content = entry["content"];
@@ -57,18 +58,25 @@ void forward_index(string a){
         word[x.first]=x.second;
         }
         title["words"]=word;
-        jsonArray.push_back(title);
+        if(i==0){
+            file_output<<title;i++;
+        }else{
+        file_output<<","<<title;
+        }
     }
-    file_output<< std::setw(4) << jsonArray << std::endl;
+    file_output << "]"; 
     file_output.close();
     file.close();
 }
 
 int main() {
-  // string word = "Underrated";
-  // stemming::stem_word(&word, &word);
-  // cout << word;
+  auto start_time = std::chrono::high_resolution_clock::now();
   forward_index("weareanonymous");
+  //read_forward("index");
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
+  std::cout << "Time taken by the first part: " << duration.count()/1000000 << "seconds" << std::endl;
+  
   return 0;
 }
