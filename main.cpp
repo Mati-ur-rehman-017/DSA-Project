@@ -24,27 +24,29 @@ void split(const string &s, char seperator, unordered_map<string,int> &words) {
         }
 }
 
-
+//corrected version
 void forward_index(string a){
     ifstream file(a+".json");
     if (!file.is_open()) {
         std::cerr << "Failed to open the file." << endl;
         return;
     }
+    //Parsing json file
+    nlohmann::json jsonData;
+    file >> jsonData;
+
     ofstream file_output("index.json");
     if (!file_output.is_open()) {
         std::cerr << "Failed to open the file for writing." << std::endl;
         return;
     }
-    //Parsing json file
-    nlohmann::json jsonData;
-    file >> jsonData;
+    file_output<<"[";
 
-    unordered_map<string,int> mp;
-    unordered_map<string, int>::iterator it;
     //Accessing each article in json file
-    int i=0;file_output<<"[";
+    int i=0;
     for (const auto& entry : jsonData) {
+        unordered_map<string,int> mp;
+        unordered_map<string, int>::iterator it;
         string t = entry["title"];
         string content = entry["content"];
         string url = entry["url"];
