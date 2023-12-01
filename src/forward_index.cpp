@@ -1,4 +1,6 @@
 #include "forward_index.hpp"
+#include <fstream>
+#include <string>
 
 void stem_word(std::string *word) {
   std::wstring w_word(word->begin(), word->end());
@@ -38,9 +40,10 @@ int getID() {
   return id;
 }
 
-void forwardIndex(const string &filePath) {
+void forwardIndex(const string &path) {
   // Opening File to Read
-  ifstream file(filePath);
+  int id = getID(), fileNo = id / 10000;
+  ifstream file("NewsData/" + path);
   if (!file.is_open()) {
     std::cerr << "Failed to open the file." << endl;
     return;
@@ -50,11 +53,9 @@ void forwardIndex(const string &filePath) {
   nlohmann::json jsonData;
   file >> jsonData;
 
-  // Getting Id For giving to documents
-  int id = getID();
-
   // Opening Files to write forward index and metadata
-  ofstream file_output("ForwardIndex/index.txt", ios_base::app),
+  ofstream file_output("ForwardIndex/Index" + to_string(fileNo) + ".txt",
+                       ios_base::app),
       meta_data("ForwardIndex/metadata.txt", ios_base::app);
   if (!file_output.is_open() || !meta_data.is_open()) {
     std::cerr << "Failed to open the file for writing." << std::endl;
@@ -64,6 +65,13 @@ void forwardIndex(const string &filePath) {
   // Accessing each article in json file
   unordered_map<string, int> mp;
   for (const auto &entry : jsonData) {
+    if (id / 10000 > fileNo) {
+      fileNo = id / 10000;
+      file_output.close();
+      file_output.open("ForwardIndex/Index" + to_string(fileNo) + ".txt");
+      if (!file.is_open())
+        cout << "Can Not Open File: Index" << fileNo;
+    }
     split(entry["content"], mp);
     meta_data << '!' << id << '\\' << entry["title"] << ':' << entry["url"];
     file_output << '!' << id;
