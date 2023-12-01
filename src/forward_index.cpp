@@ -42,7 +42,7 @@ int getID() {
 
 void forwardIndex(const string &path) {
   // Opening File to Read
-  int id = getID(), fileNo = id / 10000;
+  int id = getID(), fileNo = id / 20000;
   ifstream file("NewsData/" + path);
   if (!file.is_open()) {
     std::cerr << "Failed to open the file." << endl;
@@ -65,8 +65,8 @@ void forwardIndex(const string &path) {
   // Accessing each article in json file
   unordered_map<string, int> mp;
   for (const auto &entry : jsonData) {
-    if (id / 10000 > fileNo) {
-      fileNo = id / 10000;
+    if (id / 20000 > fileNo) {
+      fileNo = id / 20000;
       file_output.close();
       file_output.open("ForwardIndex/Index" + to_string(fileNo) + ".txt");
       if (!file.is_open())
