@@ -15,7 +15,7 @@ void split(const string &s, unordered_map<string, int> &words) {
   string word;
   for (int i = 0; i < s.size(); i++) {
     if (isalpha(s[i])||isdigit(s[i])) {
-      word.push_back(s[i]);
+      word.push_back(tolower(s[i]));
     }
     if (isspace(s[i]) && word.length()) {
       // stemming::stem_word(&word, &word);
