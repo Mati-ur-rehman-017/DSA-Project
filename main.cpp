@@ -1,6 +1,7 @@
 #include "src/forward_index.hpp"
 #include <filesystem>
 
+using namespace std;
 class node
 {
 public:
@@ -28,6 +29,9 @@ class pairs{
 void read_inverted(unordered_map<string,node*> & mp)
 {
   ifstream inverted("inverted.txt");
+  if(!inverted.is_open()){
+    return;
+  }
   char c;
   string word, id, score;
   node *temp;
@@ -39,8 +43,7 @@ void read_inverted(unordered_map<string,node*> & mp)
     {
       word.clear();
       // Finding whole world
-      while ((c = inverted.get()) != '\\' && c != ':')
-      {
+      while ((c = inverted.get()) != '\\' && c != ':'){
         word += c;
       }
       mp[word] = nullptr;
@@ -51,29 +54,26 @@ void read_inverted(unordered_map<string,node*> & mp)
       id.clear();
       score.clear();
       // Finding whole id
-      while ((c = inverted.get()) != ':')
-      {
+      while ((c = inverted.get()) != ':'){
         id += c;
       }
       // Finding it's score
-      while ((c = inverted.get()) != '\\' && c != '!' && c!=EOF)
-      {
+      while ((c = inverted.get()) != '\\' && c != '!' && c!=EOF){
         score += c;
       }
       // Adding node to linked list
       node *temp2 = new node(stoi(id), stoi(score));
-      if (mp[word] == nullptr)
-      {
+      if (mp[word] == nullptr){
         mp[word] = temp2;
         temp = temp2;
       }
-      else
-      {
+      else{
         temp->next = temp2;
         temp = temp2;
       }
     }
   }
+  inverted.close();
   return;
 }
 
@@ -82,7 +82,7 @@ void inverted_index(string a, unordered_map<string, node *> &mp)
   ifstream forward(a);
   if (!forward.is_open())
   {
-    cout << "Can Not Open Forward index file";
+    std::cout << "Can Not Open Forward index file";
     return;
   }
   char c = forward.get();
@@ -133,7 +133,7 @@ void inverted_index(string a, unordered_map<string, node *> &mp)
   //Writing to inverted.txt file whole inverted index
   ofstream inverted("inverted.txt");
   node*temp;
-  for (auto x : mp) {
+  for (auto& x : mp) {
       inverted << '!' << x.first;
       temp=x.second;
       while(temp!=nullptr){
@@ -148,14 +148,14 @@ void search_title(vector<pairs*>&a,vector<vector<string>>&b){
   ifstream file("ForwardIndex\\metadata.txt");
   if (!file.is_open())
   {
-    cout << "Can Not Open meta data file";
+    std::cout << "Can Not Open meta data file";
     return;
   }
   vector<string>d;
   for(int i=0;i<a.size();i++){
     b.push_back(d);
   }
-  char c=file.get();string id,title,url;
+  char c=file.get();string id,title,url;int j=0;
   while (!file.eof()) {
         if (c == '!') {
             id.clear();
@@ -173,7 +173,8 @@ void search_title(vector<pairs*>&a,vector<vector<string>>&b){
                         url += c;
                     }
                     b[i].push_back(title);
-                    b[i].push_back(url);
+                    b[i].push_back(url);j++;
+                    if(j==a.size()){return;}
                     break;
                 }
                 if(i==a.size()-1){
@@ -187,14 +188,14 @@ void search_title(vector<pairs*>&a,vector<vector<string>>&b){
 
 bool check_nullptr(vector<node*>&lists){
   for(int i=0;i<lists.size();i++){
-    if(lists[i]==nullptr){return true;}
+    if(lists[i]==nullptr){cout<<"good";return true;}
   }
   return false;
 }
 
 void greater_or_equal_tomax(vector<node*>&lists,int max){
   for(int i=0;i<lists.size();i++){
-    while(lists[i]->id<max){
+    while( lists[i]!=nullptr && lists[i]->id<max){
       lists[i]=lists[i]->next;
     }
   }
@@ -225,12 +226,11 @@ void Quicksort(vector<pairs*> &v, int start, int end ){
 	
 }
 
-
 void search_words(vector<string>words,unordered_map<string,node*> & mp){
   vector<node*>lists;
   for(int i=0;i<words.size();i++){
     if(mp[words[i]]==nullptr){
-      cout<<"\nNo Matches\n";return;
+      std::cout<<"\nNo Matches\n";return;
     }
     lists.push_back(mp[words[i]]);
   }
@@ -239,8 +239,14 @@ void search_words(vector<string>words,unordered_map<string,node*> & mp){
   while(!check_nullptr(lists)){
     int id=lists[0]->id,max=-1;
     for(int i=0;i<lists.size();i++){
-      if(id<lists[i]->id){
-        id=lists[i]->id;max=id;
+      if(id!=lists[i]->id){
+        for( ;i<lists.size();i++){
+          if(id<lists[i]->id){
+            id=lists[i]->id;max=id;
+          }else if(max==-1){
+            max=id;
+          }
+        }
       }
     }
     if(max!=-1){
@@ -256,46 +262,37 @@ void search_words(vector<string>words,unordered_map<string,node*> & mp){
       }
     }
   }
+  if(ID.size()==0){cout<<"No such articles";return;}
   //Sorting retrieved id's according to score
   Quicksort(ID,0,ID.size()-1);
   //Recieving titles and urls in a vector<vector<string>>
   vector<vector<string>> info;
   search_title(ID,info);
-  cout << endl << "Total no of articles: " << info.size() << endl;
+  std::cout << endl << "Total no of articles: " << info.size() << endl;
     for (int i = 0; i < info.size(); i++) {
-        cout << "Article " << i+1 << ":\n";
+        std::cout << "Article " << i+1 << ":\n";
         for (int j = 0; j < info[i].size(); j++) {
-            cout << info[i][j] << "\n";
+            std::cout << info[i][j] << "\n";
         }
     }
 }
 
-
 int main()
 {
-  unordered_map<string,node*>mp;//read_inverted(mp);
-  auto start_time = std::chrono::high_resolution_clock::now();
-  // forwardIndex("369news.json");
-  // inverted_index("ForwardIndex\\Index0.txt",mp);
-  read_inverted(mp);
-  //Checking loading inverted index
-// node* temp3;
-//   for (auto x : mp) {
-//       cout << '!' << x.first;
-//       temp3=x.second;
-//       while(temp3!=nullptr){
-//         cout<<'\\'<<temp3->id<<':'<<temp3->score;
-//         temp3=temp3->next;
-//       }
-  //}
-  vector<string>a;
-   a.push_back("pp");
-  // a.push_back("among");
-  search_words(a,mp);
 
+  unordered_map<string,node*>mp;//read_inverted(mp);
+  mp.reserve(1000000);
+  auto start_time = std::chrono::high_resolution_clock::now();
+  read_inverted(mp);
+  vector<string>a;
+  std::cout<<"pk";
+  a.push_back("india");
+  a.push_back("pakistan");
+  search_words(a,mp);
+  
 
   auto end_time = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
-  std::cout << "Time taken by the first part: " << duration.count() / 1000 << "miliseconds" << std::endl;
+  std::cout << "Time taken by the first part: " << duration.count() / 6000000 << "miliseconds" << std::endl;
 }

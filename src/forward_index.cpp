@@ -14,7 +14,7 @@ void stem_word(std::string *word) {
 void split(const string &s, unordered_map<string, int> &words) {
   string word;
   for (int i = 0; i < s.size(); i++) {
-    if (isalpha(s[i])||isdigit(s[i])) {
+    if (isalpha(s[i])) {
       word.push_back(tolower(s[i]));
     }
     if (isspace(s[i]) && word.length()) {
@@ -24,9 +24,17 @@ void split(const string &s, unordered_map<string, int> &words) {
     }
   }
 }
-
+void split(string &s){
+  string word;
+  for (int i = 0; i < s.size(); i++) {
+    if (isalpha(s[i])||isspace(s[i])) {
+      word.push_back(s[i]);
+    }
+  }
+  s=word;
+}
 int getID() {
-  ifstream count("ForwardIndex/count.txt");
+  ifstream count("ForwardIndex/count.txt",ios::app);
   if (!count.is_open()) {
     cout << "CanNot Open file Count";
     exit(EXIT_FAILURE);
@@ -42,7 +50,7 @@ int getID() {
 
 void forwardIndex(const string &path) {
   // Opening File to Read
-  int id = getID(), fileNo = id / 20000;
+  int id = getID();
   ifstream file("NewsData/" + path);
   if (!file.is_open()) {
     std::cerr << "Failed to open the file." << endl;
@@ -54,8 +62,7 @@ void forwardIndex(const string &path) {
   file >> jsonData;
 
   // Opening Files to write forward index and metadata
-  ofstream file_output("ForwardIndex/Index" + to_string(fileNo) + ".txt",
-                       ios_base::app),
+  ofstream file_output("ForwardIndex/Index.txt"),
       meta_data("ForwardIndex/metadata.txt", ios_base::app);
   if (!file_output.is_open() || !meta_data.is_open()) {
     std::cerr << "Failed to open the file for writing." << std::endl;
@@ -65,15 +72,10 @@ void forwardIndex(const string &path) {
   // Accessing each article in json file
   unordered_map<string, int> mp;
   for (const auto &entry : jsonData) {
-    if (id / 20000 > fileNo) {
-      fileNo = id / 20000;
-      file_output.close();
-      file_output.open("ForwardIndex/Index" + to_string(fileNo) + ".txt");
-      if (!file.is_open())
-        cout << "Can Not Open File: Index" << fileNo;
-    }
+    string title=entry["title"];
     split(entry["content"], mp);
-    meta_data << '!' << id << '\\' << entry["title"] << ':' << entry["url"];
+    split(title);
+    meta_data << '!' << id << '\\' << title << ':' << entry["url"];
     file_output << '!' << id;
     for (auto x : mp) {
       file_output << '\\' << x.first << ':' << x.second;
