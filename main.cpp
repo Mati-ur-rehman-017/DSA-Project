@@ -1,5 +1,6 @@
 #include "src/forward_index.hpp"
 #include <filesystem>
+#include<stdexcept>
 
 using namespace std;
 class node
@@ -13,6 +14,24 @@ public:
     id = ID;
     score = Score;
     next = nullptr;
+  }
+};
+class LL{
+  public:
+  node*head;
+  node*tail;
+  LL(){
+    head=nullptr;tail=nullptr;
+  }
+  void insert(int id,int score){
+    if(tail==nullptr){
+      head=new node(id ,score);
+      tail=head;
+    }
+    else{
+      tail->next=new node(id,score);
+      tail=tail->next;
+    }
   }
 };
 class pairs{
@@ -43,7 +62,7 @@ size_t customHash(const std::string& key) {
     return hash;
 }
 
-void read_inverted(unordered_map<string, node*, decltype(&customHash)>& mp)
+void read_inverted(unordered_map<string,LL, decltype(&customHash)>& mp)
 {
   ifstream inverted("inverted.txt");
   if(!inverted.is_open()){
@@ -51,7 +70,6 @@ void read_inverted(unordered_map<string, node*, decltype(&customHash)>& mp)
   }
   char c;
   string word, id, score;
-  node *temp;
   c = inverted.get();
   while (c != EOF)
   {
@@ -63,7 +81,7 @@ void read_inverted(unordered_map<string, node*, decltype(&customHash)>& mp)
       while ((c = inverted.get()) != '\\' && c != ':'){
         word += c;
       }
-      mp[word] = nullptr;
+      mp[word].head = nullptr;
     }
     // New ID
     if (c == '\\')
@@ -79,22 +97,14 @@ void read_inverted(unordered_map<string, node*, decltype(&customHash)>& mp)
         score += c;
       }
       // Adding node to linked list
-      node *temp2 = new node(stoi(id), stoi(score));
-      if (mp[word] == nullptr){
-        mp[word] = temp2;
-        temp = temp2;
-      }
-      else{
-        temp->next = temp2;
-        temp = temp2;
-      }
+      mp[word].insert(stoi(id), stoi(score));
     }
   }
   inverted.close();
   return;
 }
 
-void inverted_index(string a, unordered_map<string, node*, decltype(&customHash)>& mp)
+void inverted_index(string a, unordered_map<string,LL, decltype(&customHash)>& mp)
 {
   ifstream forward(a);
   if (!forward.is_open())
@@ -111,7 +121,7 @@ void inverted_index(string a, unordered_map<string, node*, decltype(&customHash)
     {
       id.clear();
       //getting full id
-      while ((c = forward.get()) != '\\' && c != '!')
+      while ((c = forward.get()) != '\\')
       {
         id += c;
       }
@@ -130,20 +140,8 @@ void inverted_index(string a, unordered_map<string, node*, decltype(&customHash)
         score += c;
       }
       //storing word and its score
-      node *temp = new node(stoi(id), stoi(score));
-      if (mp[word] == nullptr)
-      {
-        mp[word] = temp;
-      }
-      else
-      {
-        node *temp2 = mp[word];
-        while (temp2->next != nullptr)
-        {
-          temp2 = temp2->next;
-        }
-        temp2->next = temp;
-      }
+      //cout<<score<<id;
+      mp[word].insert(stoi(id), stoi(score));
     }
   }
   forward.close();
@@ -152,7 +150,7 @@ void inverted_index(string a, unordered_map<string, node*, decltype(&customHash)
   node*temp;
   for (auto& x : mp) {
       inverted << '!' << x.first;
-      temp=x.second;
+      temp=x.second.head;
       while(temp!=nullptr){
         inverted<<'\\'<<temp->id<<':'<<temp->score;
         temp=temp->next;
@@ -175,7 +173,7 @@ void search_title(vector<pairs*>&a,vector<str_pair>&b){
   int article_id=a[0]->id;
   char c=file.get();string id,title,url;int j=0;
   while (!file.eof()) {
-        if (c == '#') {
+        if (c == '`') {
             id.clear();
             while (file.get(c) && c != '\\') {
                 id += c;
@@ -186,7 +184,7 @@ void search_title(vector<pairs*>&a,vector<str_pair>&b){
                 title += c;
               }
               url.clear();
-              while (file.get(c) && c != '#') {
+              while (file.get(c) && c != '`') {
                 url += c;
               }
               b[j].title=title;
@@ -197,7 +195,7 @@ void search_title(vector<pairs*>&a,vector<str_pair>&b){
               article_id=a[j]->id;
             }
             else{
-                  while(c!='#'&&c!=EOF){c=file.get();}
+                  while(c!='`'&&c!=EOF){c=file.get();}
             }
         }
     }
@@ -232,7 +230,6 @@ int Partition(vector<str_pair> &v, int start, int end) {
     return j;
 }
 
-
 void Quicksort(vector<str_pair> &v, int start, int end ){
 
 	if(start<end){
@@ -243,14 +240,13 @@ void Quicksort(vector<str_pair> &v, int start, int end ){
 	
 }
 
-
-void search_words(vector<string>words,unordered_map<string, node*, decltype(&customHash)>& mp){
+void search_words(vector<string>words,unordered_map<string, LL, decltype(&customHash)>& mp){
   vector<node*>lists;
   for(int i=0;i<words.size();i++){
-    if(mp[words[i]]==nullptr){
+    if(mp[words[i]].head==nullptr){
       std::cout<<"\nNo Matches\n";return;
     }
-    lists.push_back(mp[words[i]]);
+    lists.push_back(mp[words[i]].head);
   }
   //Finding id's with same words
   vector<pairs*>ID;
@@ -282,7 +278,7 @@ void search_words(vector<string>words,unordered_map<string, node*, decltype(&cus
   }
   if(ID.size()==0){cout<<"No such articles";return;}
   
-  
+  cout<<"\nnear boys\n";
   //Recieving titles and urls in a vector<vector<string>>
   vector<str_pair> info;
   search_title(ID,info);
@@ -301,19 +297,20 @@ void search_words(vector<string>words,unordered_map<string, node*, decltype(&cus
 int main()
 {
 
-  unordered_map<string, node*, decltype(&customHash)> mp(10000000, customHash);//read_inverted(mp);
+  unordered_map<string, LL, decltype(&customHash)> mp(10000000, customHash);//read_inverted(mp);
   //mp.reserve(1000000);
+  
   read_inverted(mp);
   
   auto start_time = std::chrono::high_resolution_clock::now();
   
-  // forwardIndex("activistpost.json");
+  // forwardIndex("cnn.json");
   // inverted_index("ForwardIndex\\Index.txt",mp);
-  
+
   vector<string>a;
   //a.push_back("india");
   a.push_back("pakistan");
-  a.push_back("india");
+  //a.push_back("india");
   search_words(a,mp);
 
   auto end_time = std::chrono::high_resolution_clock::now();

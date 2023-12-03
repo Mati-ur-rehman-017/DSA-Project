@@ -75,7 +75,7 @@ void forwardIndex(const string &path) {
     string title=entry["title"];
     split(entry["content"], mp);
     split(title);
-    meta_data << '#' << id << '\\' << title << ':' << entry["url"];
+    meta_data << '`' << id << '\\' << title << ':' << entry["url"];
     file_output << '!' << id;
     for (auto x : mp) {
       file_output << '\\' << x.first << ':' << x.second;
