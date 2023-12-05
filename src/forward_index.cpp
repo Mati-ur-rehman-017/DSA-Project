@@ -2,15 +2,6 @@
 #include <fstream>
 #include <string>
 
-void stem_word(std::string *word) {
-  std::wstring w_word(word->begin(), word->end());
-  stemming::english_stem<std::wstring> Stem;
-  Stem(w_word);
-  word->clear();
-  for (int i = 0; i < w_word.size(); i++)
-    word->push_back(w_word[i]);
-}
-
 void split(const string &s, unordered_map<string, int> &words) {
   string word;
   for (int i = 0; i < s.size(); i++) {
@@ -18,23 +9,22 @@ void split(const string &s, unordered_map<string, int> &words) {
       word.push_back(tolower(s[i]));
     }
     if (isspace(s[i]) && word.length()) {
-      // stemming::stem_word(&word, &word);
       words[word] = words[word] + 1;
       word.clear();
     }
   }
 }
-void split(string &s){
+void split(string &s) {
   string word;
   for (int i = 0; i < s.size(); i++) {
-    if (isalpha(s[i])||isspace(s[i])) {
+    if (isalpha(s[i]) || isspace(s[i])) {
       word.push_back(s[i]);
     }
   }
-  s=word;
+  s = word;
 }
 int getID() {
-  ifstream count("ForwardIndex/count.txt",ios::app);
+  ifstream count("ForwardIndex/count.txt", ios::app);
   if (!count.is_open()) {
     cout << "CanNot Open file Count";
     exit(EXIT_FAILURE);
@@ -50,7 +40,7 @@ int getID() {
 
 void forwardIndex(const string &path) {
   // Opening File to Read
-   int id = getID();
+  int id = getID();
   ifstream file("NewsData/" + path);
   if (!file.is_open()) {
     std::cerr << "Failed to open the file." << endl;
@@ -72,10 +62,11 @@ void forwardIndex(const string &path) {
   // Accessing each article in json file
   unordered_map<string, int> mp;
   for (const auto &entry : jsonData) {
-    string title=entry["title"];
+    string title = entry["title"], url = entry["url"];
     split(entry["content"], mp);
     split(title);
-    meta_data << '`' << id << '\\' << title << ':' << entry["url"];
+    meta_data << '`' << id << '\e' << title.size() + url.size() << '\\' << title
+              << ':' << entry["url"];
     file_output << '!' << id;
     for (auto x : mp) {
       file_output << '\\' << x.first << ':' << x.second;

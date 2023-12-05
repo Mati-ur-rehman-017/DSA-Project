@@ -1,39 +1,102 @@
 #include "inverted_index.hpp"
 #include <bits/types/FILE.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <initializer_list>
+#include <ios>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <unordered_map>
 
-void read_inverted(unordered_map<string, LL, decltype(&customHash)> &mp) {
+node::node(int ID, int Score) : id(ID), score(Score), next(nullptr) {}
+
+LL::LL() : head(nullptr), tail(nullptr) {}
+
+void LL::insert(int id, int score) {
+  if (tail == nullptr)
+    tail = head = new node(id, score);
+  return;
+  tail->next = new node(id, score);
+  tail = tail->next;
+}
+
+pairs::pairs(int ID, int Score) : id(ID), score(Score) {}
+str_pair::str_pair(string a, string b, int s) : title(a), url(b), score(s) {}
+
+// Custom hash function for strings using the djb2 algorithm
+size_t customHash(const std::string &key) {
+  size_t hash = 5381;
+
+  for (char c : key) {
+    hash = ((hash << 5) + hash) + static_cast<size_t>(c); // djb2 hash algorithm
+  }
+
+  return hash;
+}
+
+void giveList(string word,
+              unordered_map<string, int, decltype(&customHash)> &mp, LL *head) {
+  ifstream inverted("inverted.txt");
+  char c;
+  string id, score;
+  // int score = 0;
+  inverted.seekg(mp[word]);
+  while (c != '!' && c != EOF) {
+    getline(inverted, id, ':');
+    while ((c = inverted.get()) != '\\' && c != '!' && c != EOF)
+      score.push_back(c);
+    // cout << score << endl;
+    head->insert(stoi(id), stoi(score));
+    score.clear();
+    id.clear();
+  }
+  inverted.close();
+}
+
+void read_inverted(unordered_map<string, int, decltype(&customHash)> &mp) {
   ifstream inverted("inverted.txt");
   if (!inverted.is_open()) {
     return;
   }
+  // !manno\45289:1
   char c;
   string word, id, score;
   c = inverted.get();
-  while (c != EOF) {
+  while (!inverted.eof()) {
     // New Word Detected
-    if (c == '!') {
-      word.clear();
-      // Finding whole world
-      while ((c = inverted.get()) != '\\' && c != ':') {
-        word += c;
-      }
-      mp[word].head = nullptr;
-    }
+    // inverted.ignore(1000, '!');
+    // if (c == '!') {
+    word.clear();
+    // Finding whole world
+    getline(inverted, word, '\\');
+    mp[word] = inverted.tellg();
+    inverted.ignore(1000, '!');
+    // while ((c = inverted.get()) != '\\' && c != ':') {
+    //   word += c;
+    // }
+    // mp[word].head = nullptr;
+    // }
     // New ID
-    if (c == '\\') {
-      id.clear();
-      score.clear();
-      // Finding whole id
-      while ((c = inverted.get()) != ':') {
-        id += c;
-      }
-      // Finding it's score
-      while ((c = inverted.get()) != '\\' && c != '!' && c != EOF) {
-        score += c;
-      }
-      // Adding node to linked list
-      mp[word].insert(stoi(id), stoi(score));
-    }
+    // if (c == '\\') {
+    // id.clear();
+    // score.clear();
+    // // Finding whole id
+    // while ((c = inverted.get()) != ':') {
+    //   id += c;
+    // getline(inverted, id, ':');
+    // }
+    // Finding it's score
+    // while ((c = inverted.get()) != '\\' && c != '!' && c != EOF) {
+    //   score += c;
+    // }
+    // getline(inverted, score, '!');
+    // inverted.putback('!');
+    // Adding node to linked list
+    // mp[word].insert(stoi(id), stoi(score));
+    // }
   }
   inverted.close();
   return;
@@ -88,7 +151,7 @@ void inverted_index(string a,
 }
 
 void search_title(vector<pairs *> &a, vector<str_pair> &b) {
-  ifstream file("ForwardIndex\\metadata.txt");
+  ifstream file("ForwardIndex/metadata.txt");
   if (!file.is_open()) {
     std::cout << "Can Not Open meta data file";
     return;
@@ -97,38 +160,43 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
   for (int i = 0; i < a.size(); i++) {
     b.push_back(d);
   }
-  int article_id = a[0]->id;
+  int article_id = a[0]->id, id = 0, jump = 0;
   char c = file.get();
-  string id, title, url;
+  string title, url;
   int j = 0;
   while (!file.eof()) {
     if (c == '`') {
-      id.clear();
+      id = 0;
+      while (file.get(c) && c != '\e') {
+        id = id * 10 + (c - 48);
+        // cout << id << endl;
+      }
+    }
+    if (article_id == id) {
+      file.ignore(100, '\\');
+      title.clear();
+      while (file.get(c) && c != ':') {
+        title += c;
+      }
+      url.clear();
+      while (file.get(c) && c != '`') {
+        url += c;
+      }
+      b[j].title = title;
+      b[j].url = url;
+      b[j].score = a[j]->score;
+      j++;
+      if (j == a.size()) {
+        return;
+      }
+      article_id = a[j]->id;
+    } else {
+      jump = 0;
       while (file.get(c) && c != '\\') {
-        id += c;
+        jump = jump * 10 + (c - 48);
       }
-      if (article_id == stoi(id)) {
-        title.clear();
-        while (file.get(c) && c != ':') {
-          title += c;
-        }
-        url.clear();
-        while (file.get(c) && c != '`') {
-          url += c;
-        }
-        b[j].title = title;
-        b[j].url = url;
-        b[j].score = a[j]->score;
-        j++;
-        if (j == a.size()) {
-          return;
-        }
-        article_id = a[j]->id;
-      } else {
-        while (c != '`' && c != EOF) {
-          c = file.get();
-        }
-      }
+      file.seekg(jump + 3, ios_base::cur);
+      file.get(c);
     }
   }
   file.close();
@@ -173,15 +241,29 @@ void Quicksort(vector<str_pair> &v, int start, int end) {
 }
 
 void search_words(vector<string> words,
-                  unordered_map<string, LL, decltype(&customHash)> &mp) {
+                  unordered_map<string, int, decltype(&customHash)> &mp) {
   vector<node *> lists;
+  // cout << 1;
+  LL temp;
   for (int i = 0; i < words.size(); i++) {
-    if (mp[words[i]].head == nullptr) {
-      std::cout << "\nNo Matches\n";
-      return;
-    }
-    lists.push_back(mp[words[i]].head);
+    // if (mp[words[i]].head == nullptr) {
+    //   std::cout << "\nNo Matches\n";
+    //   return;
+    // }
+    // lists.push_back(mp[words[i]].head);
+    giveList(words[i], mp, &temp);
+    // cout << temp->id << ":" << temp->score << endl;
+    // return;
+    lists.push_back(temp.head);
+    temp.clear();
   }
+  int i = 0;
+  while (lists[0]->next != nullptr) {
+    i++;
+    lists[0] = lists[0]->next;
+  }
+  cout << i << endl;
+  exit(0);
   // Finding id's with same words
   vector<pairs *> ID;
   while (!check_nullptr(lists)) {

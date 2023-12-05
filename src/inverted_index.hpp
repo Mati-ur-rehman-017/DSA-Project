@@ -2,7 +2,6 @@
 #define INVERTED_INDEX
 
 #include "nlohmann/json.hpp"
-#include "stemming/english_stem.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -23,6 +22,14 @@ public:
   node *tail;
   LL();
   void insert(int id, int score);
+  void clear() {
+    node *temp;
+    while (head != tail) {
+      temp = head;
+      head = head->next;
+      delete temp;
+    }
+  }
 };
 class pairs {
 public:
@@ -38,7 +45,7 @@ public:
   str_pair(string a, string b, int s);
 };
 size_t customHash(const std::string &key);
-void read_inverted(unordered_map<string, LL, decltype(&customHash)> &mp);
+void read_inverted(unordered_map<string, int, decltype(&customHash)> &mp);
 void inverted_index(string a,
                     unordered_map<string, LL, decltype(&customHash)> &mp);
 void search_title(vector<pairs *> &a, vector<str_pair> &b);
@@ -46,7 +53,9 @@ bool check_nullptr(vector<node *> &lists);
 void greater_or_equal_tomax(vector<node *> &lists, int max);
 int Partition(vector<str_pair> &v, int start, int end);
 void Quicksort(vector<str_pair> &v, int start, int end);
+void giveList(string word, unordered_map<string, int, decltype(&customHash)> &,
+              LL *);
 void search_words(vector<string> words,
-                  unordered_map<string, LL, decltype(&customHash)> &mp);
+                  unordered_map<string, int, decltype(&customHash)> &mp);
 
 #endif
