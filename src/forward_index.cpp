@@ -41,7 +41,7 @@ int getID() {
 void forwardIndex(const string &path) {
   // Opening File to Read
   int id = getID();
-  ifstream file("NewsData/" + path);
+  ifstream file("NewsData\\" + path);
   if (!file.is_open()) {
     std::cerr << "Failed to open the file." << endl;
     return;
@@ -52,8 +52,8 @@ void forwardIndex(const string &path) {
   file >> jsonData;
 
   // Opening Files to write forward index and metadata
-  ofstream file_output("ForwardIndex/Index.txt"),
-      meta_data("ForwardIndex/metadata.txt", ios_base::app);
+  ofstream file_output("ForwardIndex\\Index.txt"),
+      meta_data("ForwardIndex\\metadata.txt", ios_base::app);
   if (!file_output.is_open() || !meta_data.is_open()) {
     std::cerr << "Failed to open the file for writing." << std::endl;
     return;
@@ -77,6 +77,6 @@ void forwardIndex(const string &path) {
   meta_data.close();
   file_output.close();
   file.close();
-  ofstream count_out("ForwardIndex/count.txt");
+  ofstream count_out("ForwardIndex\\count.txt");
   count_out << id;
 }

@@ -1,5 +1,5 @@
-#include "src/forward_index.hpp"
-#include "src/inverted_index.hpp"
+#include "src\\forward_index.hpp"
+#include "src\\inverted_index.hpp"
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -8,7 +8,7 @@
 int main() {
 
   unordered_map<string, int, decltype(&customHash)> mp(100000, customHash);
-  // read_inverted(mp);
+  //  read_inverted(mp);
 
   // Make forward and inverted index
   // forwardIndex("cnn.json");
@@ -27,14 +27,14 @@ int main() {
     a.push_back(word);
   }
 
-  // ifstream ivert("inverted.txt");
   // string line;
   auto start_time = std::chrono::high_resolution_clock::now();
   // forwardIndex("cnn.json");
   // inverted_index("ForwardIndex/Index.txt", mp);
   // search_title(a, results);
   // cout << 0;
-  // cout << 1;
+  // // cout << 1;
+    // ivert.seekg(103244381);
   read_inverted(mp);
   search_words(a, mp);
   auto end_time = std::chrono::high_resolution_clock::now();

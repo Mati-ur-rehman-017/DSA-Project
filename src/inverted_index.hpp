@@ -52,10 +52,10 @@ void inverted_index(string a,
 void search_title(vector<pairs *> &a, vector<str_pair> &b);
 bool check_nullptr(vector<node *> &lists);
 void greater_or_equal_tomax(vector<node *> &lists, int max);
-int Partition(vector<str_pair> &v, int start, int end);
-void Quicksort(vector<str_pair> &v, int start, int end);
+int Partition(vector<pairs*> &v, int start, int end);
+void Quicksort(vector<pairs*> &v, int start, int end);
 void giveList(string word, unordered_map<string, int, decltype(&customHash)> &,
-              LL *);
+              LL &);
 void search_words(vector<string> words,
                   unordered_map<string, int, decltype(&customHash)> &mp);
 

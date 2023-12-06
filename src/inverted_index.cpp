@@ -1,5 +1,5 @@
 #include "inverted_index.hpp"
-#include <bits/types/FILE.h>
+#include <bits\\algorithmfwd.h>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -41,18 +41,18 @@ size_t customHash(const std::string &key) {
 }
 
 void giveList(string word,
-              unordered_map<string, int, decltype(&customHash)> &mp, LL *head) {
+              unordered_map<string, int, decltype(&customHash)> &mp, LL &head) {
   ifstream inverted("inverted.txt");
   char c;
   string id, score;
   // int score = 0;
-  inverted.seekg(mp[word]);
-  while (c != '!' && c != EOF) {
+  // exit(0);
+  inverted.seekg(mp.at(word));
+  while (c != '!' && !inverted.eof()) {
     getline(inverted, id, ':');
-    while ((c = inverted.get()) != '\\' && c != '!' && c != EOF)
+    while ((c = inverted.get()) != '\\' && c != '!' && !inverted.eof())
       score.push_back(c);
-    // cout << score << endl;
-    head->insert(stoi(id), stoi(score));
+    head.insert(stoi(id), stoi(score));
     score.clear();
     id.clear();
   }
@@ -156,7 +156,7 @@ void inverted_index(string a,
 }
 
 void search_title(vector<pairs *> &a, vector<str_pair> &b) {
-  ifstream file("ForwardIndex/metadata.txt");
+  ifstream file("ForwardIndex\\metadata.txt");
   if (!file.is_open()) {
     std::cout << "Can Not Open meta data file";
     return;
@@ -172,13 +172,13 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
   while (!file.eof()) {
     if (c == '`') {
       id = 0;
-      while (file.get(c) && c != '\e') {
+      while (file.get(c) && c != '\e' && !file.eof()) {
         id = id * 10 + (c - 48);
         // cout << id << endl;
       }
     }
     if (article_id == id) {
-      file.ignore(100, '\\');
+      file.ignore(10000, '\\');
       title.clear();
       while (file.get(c) && c != ':') {
         title += c;
@@ -196,12 +196,21 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
       }
       article_id = a[j]->id;
     } else {
-      jump = 0;
-      while (file.get(c) && c != '\\') {
-        jump = jump * 10 + (c - 48);
-      }
-      file.seekg(jump + 3, ios_base::cur);
-      file.get(c);
+      // jump = 0;
+      // while (file.get(c) && c != '\\') {
+      //   jump = jump * 10 + (c - 48);
+      // }
+      // file.seekg(jump + 3, ios_base::cur);
+      // if(id == 3850){
+      //   cout << jump;
+      //   cout << endl << (char)file.get() << "  " << (char)file.get();
+      //   exit(0);}
+      // file.get(c);
+      file.ignore(1000000,'`');
+      if(!file.eof())
+        c='`';
+      else 
+      break;
     }
   }
   file.close();
@@ -225,11 +234,11 @@ void greater_or_equal_tomax(vector<node *> &lists, int max) {
   }
 }
 
-int Partition(vector<str_pair> &v, int start, int end) {
+int Partition(vector<pairs*> &v, int start, int end) {
   int pivot = end;
   int j = start;
   for (int i = start; i < end; ++i) {
-    if (v[i].score > v[pivot].score) {
+    if (v[i]->score > v[pivot]->score) {
       swap(v[i], v[j]);
       ++j;
     }
@@ -238,7 +247,7 @@ int Partition(vector<str_pair> &v, int start, int end) {
   return j;
 }
 
-void Quicksort(vector<str_pair> &v, int start, int end) {
+void Quicksort(vector<pairs*> &v, int start, int end) {
   if (start < end) {
     int p = Partition(v, start, end);
     Quicksort(v, start, p - 1);
@@ -250,21 +259,21 @@ void search_words(vector<string> words,
                   unordered_map<string, int, decltype(&customHash)> &mp) {
   vector<node *> lists;
   // cout << 1;
-  LL temp;
   for (int i = 0; i < words.size(); i++) {
+    
+    LL temp;
     // if (mp[words[i]].head == nullptr) {
     //   std::cout << "\nNo Matches\n";
     //   return;
     // }
     // lists.push_back(mp[words[i]].head);
-    giveList(words[i], mp, &temp);
+    giveList(words[i], mp, temp);
     // for (int i = 1; i < temp.count; i++) {
     //   cout << temp.head->id << ":" << temp.head->score << endl;
     //   temp.head = temp.head->next;
     // }
     // return;
     lists.push_back(temp.head);
-    temp.head = nullptr;
   }
   // int i = 0;
   // while (lists[0]->next != nullptr) {
@@ -310,10 +319,10 @@ void search_words(vector<string> words,
   vector<str_pair> info;
   search_title(ID, info);
   // Sorting retrieved id's according to score
-  Quicksort(info, 0, info.size() - 1);
+  Quicksort(ID, 0, ID.size() - 1);
   std::cout << endl << "Total no of articles: " << info.size() << endl;
-  for (int i = 0; i < info.size(); i++) {
-    std::cout << "\nArticle " << i + 1 << ":\n";
-    cout << info[i].title << "\n" << info[i].url;
-  }
+  // for (int i = 0; i < info.size(); i++) {
+  //   std::cout << "\nArticle " << i + 1 << ":\n";
+  //   cout << info[i].title << "\n" << info[i].url;
+  // }
 }
