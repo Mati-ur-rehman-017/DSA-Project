@@ -20,6 +20,7 @@ class LL {
 public:
   node *head;
   node *tail;
+  int count;
   LL();
   void insert(int id, int score);
   void clear() {

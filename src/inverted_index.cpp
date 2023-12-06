@@ -8,17 +8,20 @@
 #include <ios>
 #include <iostream>
 #include <iterator>
+#include <ratio>
 #include <string>
 #include <unordered_map>
 
 node::node(int ID, int Score) : id(ID), score(Score), next(nullptr) {}
 
-LL::LL() : head(nullptr), tail(nullptr) {}
+LL::LL() : head(nullptr), tail(nullptr), count(0) {}
 
 void LL::insert(int id, int score) {
-  if (tail == nullptr)
+  count++;
+  if (tail == nullptr) {
     tail = head = new node(id, score);
-  return;
+    return;
+  }
   tail->next = new node(id, score);
   tail = tail->next;
 }
@@ -54,6 +57,8 @@ void giveList(string word,
     id.clear();
   }
   inverted.close();
+  // cout << head->head->next->id << ":" << head->head->next->score << endl;
+  // exit(0);
 }
 
 void read_inverted(unordered_map<string, int, decltype(&customHash)> &mp) {
@@ -205,6 +210,7 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
 bool check_nullptr(vector<node *> &lists) {
   for (int i = 0; i < lists.size(); i++) {
     if (lists[i] == nullptr) {
+      // cout << "here";
       return true;
     }
   }
@@ -252,18 +258,21 @@ void search_words(vector<string> words,
     // }
     // lists.push_back(mp[words[i]].head);
     giveList(words[i], mp, &temp);
-    // cout << temp->id << ":" << temp->score << endl;
+    // for (int i = 1; i < temp.count; i++) {
+    //   cout << temp.head->id << ":" << temp.head->score << endl;
+    //   temp.head = temp.head->next;
+    // }
     // return;
     lists.push_back(temp.head);
-    temp.clear();
+    temp.head = nullptr;
   }
-  int i = 0;
-  while (lists[0]->next != nullptr) {
-    i++;
-    lists[0] = lists[0]->next;
-  }
-  cout << i << endl;
-  exit(0);
+  // int i = 0;
+  // while (lists[0]->next != nullptr) {
+  //   i++;
+  //   lists[0] = lists[0]->next;
+  // }
+  // cout << i << endl;
+  // exit(0);
   // Finding id's with same words
   vector<pairs *> ID;
   while (!check_nullptr(lists)) {
@@ -297,8 +306,6 @@ void search_words(vector<string> words,
     cout << "No such articles";
     return;
   }
-
-  cout << "\nnear boys\n";
   // Recieving titles and urls in a vector<vector<string>>
   vector<str_pair> info;
   search_title(ID, info);

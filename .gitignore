@@ -31,5 +31,8 @@
 *.out
 *.app
 
+inverted.txt
+
+.vscode/
 NewsData/
 ForwardIndex/
