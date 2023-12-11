@@ -9,7 +9,7 @@ void split(const string &s, unordered_map<string, int> &words) {
       word.push_back(tolower(s[i]));
     }
     if (isspace(s[i]) && word.length()) {
-      words[word] = words[word] + 1;
+      words[word]++;
       word.clear();
     }
   }

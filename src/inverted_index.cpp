@@ -57,58 +57,44 @@ void giveList(string word,
     id.clear();
   }
   inverted.close();
-  // cout << head->head->next->id << ":" << head->head->next->score << endl;
-  // exit(0);
 }
 
-void read_inverted(unordered_map<string, int, decltype(&customHash)> &mp) {
+void read_inverted(unordered_map<string, LL, decltype(&customHash)> &mp) {
   ifstream inverted("inverted.txt");
   if (!inverted.is_open()) {
     return;
   }
-  // !manno\45289:1
   char c;
   string word, id, score;
   c = inverted.get();
   while (!inverted.eof()) {
     // New Word Detected
     // inverted.ignore(1000, '!');
-    // if (c == '!') {
+    if (c == '!') {
     word.clear();
-    // Finding whole world
     getline(inverted, word, '\\');
-    mp[word] = inverted.tellg();
-    inverted.ignore(1000, '!');
-    // while ((c = inverted.get()) != '\\' && c != ':') {
-    //   word += c;
-    // }
-    // mp[word].head = nullptr;
-    // }
-    // New ID
-    // if (c == '\\') {
-    // id.clear();
-    // score.clear();
-    // // Finding whole id
-    // while ((c = inverted.get()) != ':') {
-    //   id += c;
-    // getline(inverted, id, ':');
-    // }
+    mp[word].head = nullptr;c='\\';
+    }
+    if (c == '\\') {
+    id.clear();
+    score.clear();
+    // Finding whole id
+    getline(inverted, id, ':');
     // Finding it's score
-    // while ((c = inverted.get()) != '\\' && c != '!' && c != EOF) {
-    //   score += c;
-    // }
-    // getline(inverted, score, '!');
-    // inverted.putback('!');
+    while (inverted.get(c)&& c!= '\\' && c != '!') {
+      score.append(1,c);
+    }
     // Adding node to linked list
-    // mp[word].insert(stoi(id), stoi(score));
-    // }
+    mp[word].insert(stoi(id), stoi(score));
+    }
   }
   inverted.close();
   return;
 }
 
-void inverted_index(string a,
-                    unordered_map<string, LL, decltype(&customHash)> &mp) {
+void inverted_index(string a) {
+  unordered_map<string, LL, decltype(&customHash)> mp(100000, customHash);
+  read_inverted(mp);
   ifstream forward(a);
   if (!forward.is_open()) {
     std::cout << "Can Not Open Forward index file";
@@ -117,23 +103,22 @@ void inverted_index(string a,
   char c = forward.get();
   string id, word, score;
   while (c != EOF) {
-    // new document detected
     if (c == '!') {
       id.clear();
       // getting full id
       while ((c = forward.get()) != '\\') {
-        id += c;
+        id.append(1,c);
       }
     }
     // Word detection
     if (c == '\\') {
       word.clear();
       while ((c = forward.get()) != ':') {
-        word += c;
+        word.append(1,c);
       }
       score.clear();
-      while ((c = forward.get()) != '\\' && c != '!' && c != EOF) {
-        score += c;
+      while ((c = forward.get()) != '\\' && c != '!' && c != EOF){
+        score.append(1,c);
       }
       // storing word and its score
       // cout<<score<<id;
@@ -181,11 +166,13 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
       file.ignore(10000, '\\');
       title.clear();
       while (file.get(c) && c != ':') {
-        title += c;
+        title.append(1,c);
+        //title=title+c;
       }
       url.clear();
       while (file.get(c) && c != '`') {
-        url += c;
+        url.append(1,c);
+        //url=url+c;
       }
       b[j].title = title;
       b[j].url = url;
@@ -196,16 +183,6 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
       }
       article_id = a[j]->id;
     } else {
-      // jump = 0;
-      // while (file.get(c) && c != '\\') {
-      //   jump = jump * 10 + (c - 48);
-      // }
-      // file.seekg(jump + 3, ios_base::cur);
-      // if(id == 3850){
-      //   cout << jump;
-      //   cout << endl << (char)file.get() << "  " << (char)file.get();
-      //   exit(0);}
-      // file.get(c);
       file.ignore(1000000,'`');
       if(!file.eof())
         c='`';
@@ -219,7 +196,6 @@ void search_title(vector<pairs *> &a, vector<str_pair> &b) {
 bool check_nullptr(vector<node *> &lists) {
   for (int i = 0; i < lists.size(); i++) {
     if (lists[i] == nullptr) {
-      // cout << "here";
       return true;
     }
   }
@@ -255,36 +231,60 @@ void Quicksort(vector<pairs*> &v, int start, int end) {
   }
 }
 
-void search_words(vector<string> words,
-                  unordered_map<string, int, decltype(&customHash)> &mp) {
+void search_words(vector<string> words) {
+
   vector<node *> lists;
-  // cout << 1;
-  for (int i = 0; i < words.size(); i++) {
-    
-    LL temp;
-    // if (mp[words[i]].head == nullptr) {
-    //   std::cout << "\nNo Matches\n";
-    //   return;
-    // }
-    // lists.push_back(mp[words[i]].head);
-    giveList(words[i], mp, temp);
-    // for (int i = 1; i < temp.count; i++) {
-    //   cout << temp.head->id << ":" << temp.head->score << endl;
-    //   temp.head = temp.head->next;
-    // }
-    // return;
-    lists.push_back(temp.head);
+  for(int i=0;i<words.size();i++){
+    lists.push_back(nullptr);
   }
-  // int i = 0;
-  // while (lists[0]->next != nullptr) {
-  //   i++;
-  //   lists[0] = lists[0]->next;
-  // }
-  // cout << i << endl;
-  // exit(0);
-  // Finding id's with same words
+  ifstream inverted("inverted.txt");node* temp;node*temp2;
+  char c=inverted.get();
+  string word,id,score;
+  int j=0,check=0;
+  while(!inverted.eof()){
+    if(c=='!'){
+      getline(inverted,word,'\\');
+      for(int i=0;i<words.size();i++){
+        if(words[i]==word){
+          check=1;
+          temp=lists[i];
+          c='\\';
+          while(!inverted.eof()&&c!='!'){
+          id.clear();score.clear();
+          getline(inverted,id,':');
+           while(inverted.get(c)&&c!='\\'&&c!='!'){
+            score.append(1,c);
+          }
+          temp2=new node(stoi(id),stoi(score));
+          if(lists[i]==nullptr){
+            lists[i]=temp2;temp=temp2;
+          }else{
+            temp->next=temp2;
+            temp=temp2;
+          }
+          }
+        }
+        j++;
+        if(j==words.size()){
+          break;
+        }
+      }
+      if(check==0){
+        inverted.ignore(1000000,'!');
+      }else{
+        check=0;
+      }
+    }
+  }
+  inverted.close();
   vector<pairs *> ID;
-  while (!check_nullptr(lists)) {
+  if(lists.size()==1){
+    while(lists[0]!=nullptr){
+     ID.push_back(new pairs(lists[0]->id,lists[0]->score));
+    lists[0]=lists[0]->next;
+    }
+  }else{
+    while (!check_nullptr(lists)) {
     int id = lists[0]->id, max = -1;
     for (int i = 0; i < lists.size(); i++) {
       if (id != lists[i]->id) {
@@ -311,6 +311,7 @@ void search_words(vector<string> words,
       }
     }
   }
+}
   if (ID.size() == 0) {
     cout << "No such articles";
     return;
@@ -320,7 +321,7 @@ void search_words(vector<string> words,
   search_title(ID, info);
   // Sorting retrieved id's according to score
   Quicksort(ID, 0, ID.size() - 1);
-  std::cout << endl << "Total no of articles: " << info.size() << endl;
+  std::cout << endl << "Total no of articles: " << ID.size() << endl;
   // for (int i = 0; i < info.size(); i++) {
   //   std::cout << "\nArticle " << i + 1 << ":\n";
   //   cout << info[i].title << "\n" << info[i].url;

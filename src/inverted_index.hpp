@@ -46,9 +46,8 @@ public:
   str_pair(string a, string b, int s);
 };
 size_t customHash(const std::string &key);
-void read_inverted(unordered_map<string, int, decltype(&customHash)> &mp);
-void inverted_index(string a,
-                    unordered_map<string, LL, decltype(&customHash)> &mp);
+void read_inverted(unordered_map<string, LL, decltype(&customHash)> &mp);
+void inverted_index(string a);
 void search_title(vector<pairs *> &a, vector<str_pair> &b);
 bool check_nullptr(vector<node *> &lists);
 void greater_or_equal_tomax(vector<node *> &lists, int max);
@@ -56,7 +55,6 @@ int Partition(vector<pairs*> &v, int start, int end);
 void Quicksort(vector<pairs*> &v, int start, int end);
 void giveList(string word, unordered_map<string, int, decltype(&customHash)> &,
               LL &);
-void search_words(vector<string> words,
-                  unordered_map<string, int, decltype(&customHash)> &mp);
+void search_words(vector<string> words);
 
 #endif
