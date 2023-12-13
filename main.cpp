@@ -28,8 +28,8 @@ int main() {
   
   auto start_time = std::chrono::high_resolution_clock::now();
   //read_inverted(mp);  
-  //forwardIndex("369news.json");
-  //inverted_index("ForwardIndex\\Index.txt");
+  // forwardIndex("cnn.json");
+  // inverted_index("ForwardIndex\\Index.txt");
   search_words(a);
   //cout<<customHash("this")%100;
 
