@@ -2,7 +2,7 @@
 #define FORWARD_INDEX
 
 #include "nlohmann/json.hpp"
-#include "stemming.hpp"
+//#include "stemming.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>

@@ -14,10 +14,17 @@ void split(const string &s, unordered_map<string, int> &words) {
     }
   }
 }
-void split(string &s) {
-  string word;
+void split(string &s, unordered_map<string, int> &words) {
+  string word,word2;
   for (int i = 0; i < s.size(); i++) {
     if (isalpha(s[i]) || isspace(s[i])) {
+      if (isalpha(s[i])) {
+      word2.push_back(tolower(s[i]));
+    }
+    if (isspace(s[i]) && word.length()) {
+      words[word2]=words[word2]+10;
+      word2.clear();
+    }
       word.push_back(s[i]);
     }
   }
@@ -53,7 +60,8 @@ void forwardIndex(const string &path) {
 
   // Opening Files to write forward index and metadata
   ofstream file_output("ForwardIndex\\Index.txt"),
-      meta_data("ForwardIndex\\metadata.txt", ios_base::app);
+      meta_data("ForwardIndex\\metadata.txt", ios_base::app),
+      meta_data2("ForwardIndex\\metadata2.txt",ios_base::app);
   if (!file_output.is_open() || !meta_data.is_open()) {
     std::cerr << "Failed to open the file for writing." << std::endl;
     return;
@@ -64,8 +72,10 @@ void forwardIndex(const string &path) {
   for (const auto &entry : jsonData) {
     string title = entry["title"], url = entry["url"];
     split(entry["content"], mp);
-    split(title);
-    meta_data << '`' << id << '\e' << title.size() + url.size() << '\\' << title
+    split(title,mp);
+    meta_data << '`' << id <<'\\' ;
+    meta_data2<<'!'<<id<<'#'<<meta_data.tellp();
+    meta_data << title
               << ':' << entry["url"];
     file_output << '!' << id;
     for (auto x : mp) {
@@ -76,7 +86,8 @@ void forwardIndex(const string &path) {
   }
   meta_data.close();
   file_output.close();
+  meta_data2.close();
   file.close();
   ofstream count_out("ForwardIndex\\count.txt");
-  count_out << id;
+  count_out<<id;
 }
