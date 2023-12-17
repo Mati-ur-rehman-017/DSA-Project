@@ -4,7 +4,7 @@
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
-//#include <libstemmer.h>
+#include <libstemmer.h>
 #include <string>
 #include <unordered_set>
 
