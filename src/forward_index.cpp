@@ -9,11 +9,13 @@ void split(const string &s, unordered_map<string, int> &words) {
       word.push_back(tolower(s[i]));
     }
     if (isspace(s[i]) && word.length()) {
+      stem_word(&word);
       words[word]++;
       word.clear();
     }
   }
 }
+
 void split(string &s, unordered_map<string, int> &words) {
   string word, word2;
   for (int i = 0; i < s.size(); i++) {
@@ -58,7 +60,7 @@ void forwardIndex(const string &path) {
   nlohmann::json jsonData;
   file >> jsonData;
 
-  // Opening Files to write forward index and metadata
+  
   ofstream file_output("ForwardIndex/Index.txt"),
       meta_data("ForwardIndex/metadata.txt", ios_base::app),
       meta_data2("ForwardIndex/metadata2.txt", ios_base::app);
@@ -73,7 +75,7 @@ void forwardIndex(const string &path) {
     string title = entry["title"], url = entry["url"];
     split(entry["content"], mp);
     split(title, mp);
-    meta_data2 << '\e' << id << '\a' << meta_data.tellp();
+    meta_data2  << '\a' << meta_data.tellp();
     meta_data << '\e' << title << '\a' << entry["url"];
     file_output << '!' << id;
     for (auto x : mp) {
@@ -88,4 +90,5 @@ void forwardIndex(const string &path) {
   file.close();
   ofstream count_out("ForwardIndex/count.txt");
   count_out<<id;
+
 }
