@@ -1,20 +1,7 @@
 #include "inverted_index.hpp"
-#include <bits/algorithmfwd.h>
 #include <cstddef>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <initializer_list>
-#include <ios>
-#include <iostream>
 #include <iterator>
-#include <memory>
-#include <queue>
-#include <ratio>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 node::node(int ID, int Score) : id(ID), score(Score), next(nullptr) {}
@@ -31,7 +18,6 @@ void LL::insert(int id, int score) {
   tail = tail->next;
 }
 
-pairs::pairs(int ID, int Score) : id(ID), score(Score) {}
 str_pair::str_pair(string a, string b, int s) : title(a), url(b), score(s) {}
 
 // Custom hash function for strings using the djb2 algorithm
@@ -83,20 +69,16 @@ void read_inverted(unordered_map<string, LL, decltype(&customHash)> &mp,
 void writeInverted(unordered_map<string, LL, decltype(&customHash)> &mp,
                    int i) {
   ofstream inverted("inverted/inverted" + to_string(i) + ".txt");
-  ofstream inverted_meta("inverted/inverted_meta" + to_string(i) + ".txt");
   node *temp;
   for (auto &x : mp) {
-    inverted << '!' << x.first;
-    std::streampos pos = inverted.tellp();
-    inverted_meta << '!' << x.first << "#" << pos;
     temp = x.second.head;
+    inverted << '!' << x.first;
     while (temp != nullptr) {
       inverted << '\\' << temp->id << ':' << temp->score;
       temp = temp->next;
     }
   }
   inverted.close();
-  inverted_meta.close();
 }
 
 void inverted_index(string a) {
@@ -140,7 +122,7 @@ void inverted_index(string a) {
     }
   }
   int j = 0;
-  for (auto i : maps) {
+  for (auto &i : maps) {
     read_inverted(i, j);
     for (auto k : maps[j])
       i.insert(k);
@@ -149,62 +131,76 @@ void inverted_index(string a) {
   }
 }
 
-void search_title(vector<pairs *> &a, vector<str_pair> &b) {
+void search_title(vector<pair<int, int> *> &a, vector<str_pair> &b) {
   ifstream file("ForwardIndex/metadata.txt"),
       file2("ForwardIndex/metadata2.txt");
   if (!file.is_open() || !file2.is_open()) {
     std::cout << "Can Not Open meta data file";
     return;
   }
-  string title, url, id, pos;
-  file2.get();
-  for (int j = 0; j < a.size();) {
-    getline(file2, id, '\a');
-    // cout << id << endl;
-    if (a[j]->id == stoi(id)) {
-      // cout << id << endl;
-      getline(file2, pos, '\e');
-      file.seekg(stoi(pos) + 1);
-      getline(file, title, '\a');
-      getline(file, url, '\e');
-      b[j].title = title;
-      b[j].url = url;
-      b[j].score = a[j]->score;
-      j++;
-      // continue;
-    } else
-      file2.ignore(10000000, '\e');
-    if (file2.eof())
-      break;
+  // string title, url, id, pos;
+  // file2.get();
+  // for (int j = 0; j < a.size();) {
+  //   getline(file2, id, '\a');
+  //   if (a[j]->first == stoi(id)) {
+  //     cout<<"a";
+  //     getline(file2, pos, '\e');
+  //     file.seekg(stoi(pos) + 1);
+  //     getline(file, title, '\a');
+  //     getline(file, url, '\e');
+  //     b[j].title = title;
+  //     b[j].url = url;
+  //     b[j].score = a[j]->second;
+  //     a[j]->first=j;
+  //     j++;
+  //   } else
+  //     file2.ignore(10000000, '\e');
+  //   if (file2.eof())
+  //     break;
+  // }
+  // file2.close();
+  // file.close();
+  // return;
+  string  pos;
+  char c=file2.get();int k=0;
+  for(int j=0;j<a.size();){
+    while(k-1!=a[j]->first-1){
+      file2.ignore(1000000,'\a');
+      k++;
+    }
+    getline(file2, pos, '\a');
+    file.seekg(stoi(pos) + 1);
+    getline(file,  b[j].title, '\a');
+    getline(file, b[j].url, '\e');
+    b[j].score = a[j]->second;
+    a[j]->first=j;
+    j++;
+    k++;
   }
-  // exit(0);
   file2.close();
   file.close();
   return;
+
 }
 
 bool check_nullptr(vector<node *> &lists) {
-  for (int i = 0; i < lists.size(); i++) {
-    if (lists[i] == nullptr) {
+  for (auto &i : lists)
+    if (i == nullptr)
       return true;
-    }
-  }
   return false;
 }
 
 void greater_or_equal_tomax(vector<node *> &lists, int max) {
-  for (int i = 0; i < lists.size(); i++) {
-    while (lists[i] != nullptr && lists[i]->id < max) {
-      lists[i] = lists[i]->next;
-    }
-  }
+  for (auto &i : lists)
+    while (i != nullptr && i->id < max)
+      i = i->next;
 }
 
-int Partition(vector<pairs *> &v, int start, int end) {
+int Partition(vector<pair<int, int> *> &v, int start, int end) {
   int pivot = end;
   int j = start;
   for (int i = start; i < end; ++i) {
-    if (v[i]->score > v[pivot]->score) {
+    if (v[i]->second > v[pivot]->second) {
       swap(v[i], v[j]);
       ++j;
     }
@@ -213,7 +209,7 @@ int Partition(vector<pairs *> &v, int start, int end) {
   return j;
 }
 
-void Quicksort(vector<pairs *> &v, int start, int end) {
+void Quicksort(vector<pair<int, int> *> &v, int start, int end) {
   if (start < end) {
     int p = Partition(v, start, end);
     Quicksort(v, start, p - 1);
@@ -227,90 +223,66 @@ void search_words(vector<string> words) {
   for (int k = 0; k < words.size(); k++) {
     ifstream inverted("inverted/inverted" +
                       to_string(customHash(words[k]) % 100) + ".txt");
-    ifstream inverted_meta("inverted/inverted_meta" +
-                           to_string(customHash(words[k]) % 100) + ".txt");
-    string word, pos, id, score;
+    string word, id;
+    int score;
     char c;
-    inverted_meta.get();
+    inverted.get();
     node *temp;
-    node *temp2;
-    while (!inverted_meta.eof()) {
-      word.clear();
-      getline(inverted_meta, word, '#');
+    while (!inverted.eof()) {
+      getline(inverted, word, '\\');
       if (words[k] == word) {
-        pos.clear();
-        while (inverted_meta.get(c) && c != '!') {
-          pos.push_back(c);
-        }
-        inverted.seekg(stoi(pos) + 1);
-        temp = lists[k];
         c = '\\';
         while (!inverted.eof() && c != '!') {
-          id.clear();
-          score.clear();
+          score = 0;
           getline(inverted, id, ':');
-          while (inverted.get(c) && c != '\\' && c != '!') {
-            score.push_back(c);
-          }
-          temp2 = new node(stoi(id), stoi(score));
-          if (lists[k] == nullptr) {
-            lists[k] = temp2;
-            temp = temp2;
-          } else {
-            temp->next = temp2;
-            temp = temp2;
-          }
+          while (inverted.get(c) && c != '\\' && c != '!')
+            score = score * 10 + (c - 48);
+          if (lists[k] == nullptr)
+            temp = lists[k] = new node(stoi(id), (score));
+          else
+            temp = temp->next = new node(stoi(id), (score));
         }
         inverted.close();
-        inverted_meta.close();
         break;
-      } else {
-        while (inverted_meta.get(c) && c != '!') {
-        }
       }
-      if (inverted_meta.eof()) {
+      inverted.ignore(1000000, '!');
+      if (inverted.eof()) {
         cout << "words not found";
         inverted.close();
-        inverted_meta.close();
         return;
       }
     }
   }
-  vector<pairs *> ID;
-  if (lists.size() == 1) {
-    while (lists[0] != nullptr) {
-      ID.push_back(new pairs(lists[0]->id, lists[0]->score));
-      lists[0] = lists[0]->next;
-    }
-  } else {
-    while (!check_nullptr(lists)) {
-      int id = lists[0]->id, max = -1;
-      for (int i = 0; i < lists.size(); i++) {
-        if (id != lists[i]->id) {
-          for (; i < lists.size(); i++) {
-            if (id < lists[i]->id) {
-              id = lists[i]->id;
-              max = id;
-            } else if (max == -1) {
-              max = id;
-            }
+  int j=0;
+  vector<pair<int, int> *> ID;
+  while (!check_nullptr(lists)) {
+    int id = lists[0]->id, max = -1;
+    for (int i = 0; i < lists.size(); i++) {
+      if (id != lists[i]->id) {
+        for (; i < lists.size(); i++) {
+          if (id < lists[i]->id) {
+            id = lists[i]->id;
+            max = id;
+          } else if (max == -1) {
+            max = id;
           }
         }
       }
-      if (max != -1) {
-        greater_or_equal_tomax(lists, max);
-      } else {
-        int sum = 0;
-        for (int i = 0; i < lists.size(); i++) {
-          sum += lists[i]->score;
-        }
-        ID.push_back(new pairs(lists[0]->id, sum));
-        for (int i = 0; i < lists.size(); i++) {
-          lists[i] = lists[i]->next;
-        }
+    }
+    if (max != -1) {
+      greater_or_equal_tomax(lists, max);
+    } else {
+      int sum = 0;
+      for (int i = 0; i < lists.size(); i++) {
+        sum += lists[i]->score;
+      }
+      ID.push_back(new pair<int, int>(lists[0]->id, sum));
+      for (int i = 0; i < lists.size(); i++) {
+        lists[i] = lists[i]->next;
       }
     }
   }
+
   if (ID.size() == 0) {
     cout << "No such articles";
     return;
@@ -318,11 +290,12 @@ void search_words(vector<string> words) {
   // Recieving titles and urls in a vector<vector<string>>
   vector<str_pair> info(ID.size(), str_pair("", "", 0));
   search_title(ID, info);
+  cout<<"b";
   // Sorting retrieved id's according to score
   Quicksort(ID, 0, ID.size() - 1);
-  std::cout << endl << "Total no of articles: " << info.size() << endl;
-  // for (int i = 0; i < info.size(); i++) {
-  //   std::cout << "\nArticle " << i + 1 << ":\n";
-  //   cout << info[i].title << "\n" << info[i].url;
-  // }
+   std::cout << endl << "Total no of articles: " << info.size() << endl;
+  for (int i = 0; i < 10; i++) {
+    std::cout << "\nArticle " << i + 1 << ":\n";
+    cout << info[ID[i]->first].title << "\n" << info[ID[i]->first].url<<info[ID[i]->first].score;
+  }
 }
